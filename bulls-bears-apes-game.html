@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulls & Bears - Stock Market Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0f1419 0%, #1a2332 100%);
+            color: #00ff41;
+            min-height: 100vh;
+            overflow-x: auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border: 2px solid #00ff41;
+            padding: 20px;
+            background: rgba(0, 255, 65, 0.1);
+            border-radius: 8px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #00ff41;
+        }
+
+        .game-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #00ff41;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: #ffff00;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .positive { color: #00ff00; }
+        .negative { color: #ff0000; }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .stocks-panel {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00ff41;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .news-portfolio-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .news-panel, .portfolio-panel {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00ff41;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .panel-title {
+            color: #ffff00;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 1px solid #00ff41;
+            padding-bottom: 10px;
+        }
+
+        .stock-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .stock-item {
+            display: grid;
+            grid-template-columns: 1fr 100px 80px 60px 60px;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 4px;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .stock-item:hover {
+            background: rgba(0, 255, 65, 0.1);
+            border-color: #00ff41;
+        }
+
+        .stock-name {
+            font-weight: bold;
+        }
+
+        .stock-price {
+            text-align: right;
+            font-family: monospace;
+        }
+
+        .stock-change {
+            text-align: right;
+            font-family: monospace;
+        }
+
+        .trade-btn {
+            background: #001122;
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            padding: 5px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.8em;
+        }
+
+        .trade-btn:hover {
+            background: rgba(0, 255, 65, 0.2);
+        }
+
+        .buy-btn { border-color: #00ff00; color: #00ff00; }
+        .sell-btn { border-color: #ff4444; color: #ff4444; }
+
+        .news-item {
+            background: rgba(0, 0, 0, 0.5);
+            border-left: 3px solid #ffff00;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .news-time {
+            color: #888;
+            font-size: 0.8em;
+        }
+
+        .portfolio-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #333;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-content {
+            background: #0f1419;
+            margin: 15% auto;
+            padding: 20px;
+            border: 2px solid #00ff41;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            transition: all 0.3s ease;
+        }
+
+        .modal-content.insufficient-funds {
+            background: #2d0a0a;
+            border-color: #ff4444;
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+        }
+
+        .insufficient-funds-message {
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .close {
+            color: #ff4444;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .trade-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            color: #ffff00;
+        }
+
+        .form-group input {
+            background: #001122;
+            border: 1px solid #00ff41;
+            color: #00ff41;
+            padding: 8px;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid #00ff41;
+            background: #001122;
+            color: #00ff41;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            background: rgba(0, 255, 65, 0.2);
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .time-control {
+            background: #001122;
+            border: 1px solid #00ff41;
+            color: #00ff41;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            margin: 0 5px;
+        }
+
+        .time-control:hover {
+            background: rgba(0, 255, 65, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .stock-item {
+                grid-template-columns: 1fr 80px 60px;
+                gap: 5px;
+            }
+            
+            .trade-btn {
+                grid-column: span 2;
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐂 BULLS, 🐻 BEARS & APES 🦍</h1>
+            <p>Diamond Hands to the Moon! 🚀💎</p>
+        </div>
+
+        <div class="game-stats">
+            <div class="stat-card">
+                <h3>Cash</h3>
+                <div class="stat-value" id="cash">$10,000</div>
+            </div>
+            <div class="stat-card">
+                <h3>Portfolio Value</h3>
+                <div class="stat-value" id="portfolio-value">$0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Worth</h3>
+                <div class="stat-value" id="total-worth">$10,000</div>
+            </div>
+            <div class="stat-card">
+                <h3>Day</h3>
+                <div class="stat-value" id="day">1</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="time-control" onclick="advanceDay()">Next Day ⏭️</button>
+            <button class="time-control" onclick="toggleAutoPlay()" id="auto-btn">Auto Play ▶️</button>
+            <button class="time-control" onclick="resetGame()">Reset Game 🔄</button>
+        </div>
+
+        <div class="main-content">
+            <div class="stocks-panel">
+                <h2 class="panel-title">📈 STOCK MARKET</h2>
+                <div class="stock-list" id="stock-list"></div>
+            </div>
+
+            <div class="news-portfolio-panel">
+                <div class="news-panel">
+                    <h3 class="panel-title">📰 MARKET NEWS</h3>
+                    <div id="news-feed"></div>
+                </div>
+
+                <div class="portfolio-panel">
+                    <h3 class="panel-title">💼 YOUR PORTFOLIO</h3>
+                    <div id="portfolio"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trading Modal -->
+    <div id="trade-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeTradeModal()">&times;</span>
+            <div id="insufficient-funds-warning" class="insufficient-funds-message" style="display: none;">
+                💸 INSUFFICIENT FUNDS! You need more cash to make this trade.
+            </div>
+            <h2 id="modal-title">Trade Stock</h2>
+            <div class="trade-form">
+                <div class="form-group">
+                    <label for="shares">Number of Shares:</label>
+                    <input type="number" id="shares" min="1" value="1">
+                </div>
+                <div class="form-group">
+                    <label>Total Cost: $<span id="total-cost">0</span></label>
+                </div>
+                <div class="form-buttons">
+                    <button class="btn" onclick="executeTrade()">Confirm Trade</button>
+                    <button class="btn" onclick="closeTradeModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            cash: 10000,
+            day: 1,
+            portfolio: {},
+            autoPlay: false,
+            currentTrade: null
+        };
+
+        const stocks = [
+            { symbol: 'GME', name: '🎮 GameStop Corp', price: 180, change: 0, volatility: 0.30, meme: true },
+            { symbol: 'AMC', name: '🍿 AMC Entertainment', price: 25, change: 0, volatility: 0.35, meme: true },
+            { symbol: 'TSLA', name: '🚗 Tesla Inc', price: 250, change: 0, volatility: 0.28, meme: true },
+            { symbol: 'DOGE', name: '🐕 DogeCoin Fund', price: 0.75, change: 0, volatility: 0.40, meme: true },
+            { symbol: 'MOON', name: '🚀 MoonShot Corp', price: 15, change: 0, volatility: 0.50, meme: true },
+            { symbol: 'APE', name: '🦍 Ape Strong Holdings', price: 45, change: 0, volatility: 0.32, meme: true },
+            { symbol: 'HODL', name: '💎 Diamond Hands ETF', price: 35, change: 0, volatility: 0.25, meme: true },
+            { symbol: 'YOLO', name: '🎯 YOLO Ventures', price: 12, change: 0, volatility: 0.45, meme: true },
+            { symbol: 'BBBY', name: '🛏️ Bed Bath Beyond', price: 5, change: 0, volatility: 0.38, meme: true },
+            { symbol: 'NOK', name: '📱 Nokia Corp', price: 4.50, change: 0, volatility: 0.20, meme: false }
+        ];
+
+        const newsEvents = [
+            { text: "🚀 Apes together strong! Reddit rally continues", impact: { type: 'meme', strength: 0.15 } },
+            { text: "💎 Diamond hands hold the line against shorts", impact: { type: 'GME', strength: 0.20 } },
+            { text: "🦍 Retail investors refuse to sell", impact: { type: 'meme', strength: 0.12 } },
+            { text: "📈 To the moon! Meme stocks surge", impact: { type: 'meme', strength: 0.18 } },
+            { text: "🔻 Paper hands folding under pressure", impact: { type: 'meme', strength: -0.10 } },
+            { text: "⚡ Elon tweets cryptic rocket emojis", impact: { type: 'TSLA', strength: 0.25 } },
+            { text: "🎮 GameStop announces NFT marketplace", impact: { type: 'GME', strength: 0.15 } },
+            { text: "🍿 AMC CEO hints at crypto dividends", impact: { type: 'AMC', strength: 0.12 } },
+            { text: "🐕 Much wow! Doge community celebrates", impact: { type: 'DOGE', strength: 0.30 } },
+            { text: "📉 Hedge funds double down on shorts", impact: { type: 'meme', strength: -0.08 } },
+            { text: "💸 YOLO traders pile into options", impact: { type: 'YOLO', strength: 0.22 } },
+            { text: "🌙 MoonShot announces partnership with NASA", impact: { type: 'MOON', strength: 0.35 } },
+            { text: "💎💎 Diamond Hands ETF adds more meme stocks", impact: { type: 'HODL', strength: 0.10 } },
+            { text: "🦍🦍 Ape Strong Holdings goes bananas", impact: { type: 'APE', strength: 0.28 } },
+            { text: "📱 Nokia still exists, surprisingly stable", impact: { type: 'NOK', strength: 0.02 } },
+            { text: "🛏️ BBBY bankruptcy rumors intensify", impact: { type: 'BBBY', strength: -0.25 } },
+            { text: "🚨 SEC investigates social media manipulation", impact: { type: 'meme', strength: -0.15 } },
+            { text: "🎯 Retail traders target new meme stock", impact: { type: 'meme', strength: 0.20 } },
+            { text: "📊 Market makers scramble to hedge positions", impact: { type: 'all', strength: 0.05 } },
+            { text: "🔥 Another short squeeze brewing", impact: { type: 'meme', strength: 0.18 } },
+            { text: "💀 Bears getting rekt by diamond hands", impact: { type: 'meme', strength: 0.16 } },
+            { text: "🎪 Meme stock circus continues", impact: { type: 'meme', strength: 0.08 } },
+            { text: "📉 Reality check: fundamentals matter", impact: { type: 'all', strength: -0.12 } }
+        ];
+
+        let autoPlayInterval = null;
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        function updateDisplay() {
+            document.getElementById('cash').textContent = formatCurrency(gameState.cash);
+            document.getElementById('day').textContent = gameState.day;
+            
+            let portfolioValue = 0;
+            for (let symbol in gameState.portfolio) {
+                const stock = stocks.find(s => s.symbol === symbol);
+                if (stock) {
+                    portfolioValue += gameState.portfolio[symbol] * stock.price;
+                }
+            }
+            
+            document.getElementById('portfolio-value').textContent = formatCurrency(portfolioValue);
+            document.getElementById('total-worth').textContent = formatCurrency(gameState.cash + portfolioValue);
+            
+            updateStockList();
+            updatePortfolio();
+        }
+
+        function updateStockList() {
+            const stockList = document.getElementById('stock-list');
+            stockList.innerHTML = '';
+            
+            stocks.forEach(stock => {
+                const stockItem = document.createElement('div');
+                stockItem.className = 'stock-item';
+                
+                // Apply meme stock styling to all stocks including Nokia
+                if (stock.meme || stock.symbol === 'NOK') {
+                    stockItem.style.borderColor = '#ff6b35';
+                    stockItem.style.background = 'rgba(255, 107, 53, 0.1)';
+                }
+                
+                const changeClass = stock.change >= 0 ? 'positive' : 'negative';
+                const changeSymbol = stock.change >= 0 ? '+' : '';
+                
+                // Add rocket emoji for big gains
+                let rocketEmoji = '';
+                if (stock.change > 0.1) rocketEmoji = ' 🚀';
+                else if (stock.change < -0.1) rocketEmoji = ' 💀';
+                
+                stockItem.innerHTML = `
+                    <div class="stock-name">${stock.symbol} - ${stock.name}</div>
+                    <div class="stock-price">${formatCurrency(stock.price)}</div>
+                    <div class="stock-change ${changeClass}">${changeSymbol}${(stock.change * 100).toFixed(2)}%${rocketEmoji}</div>
+                    <button class="trade-btn buy-btn" onclick="openTradeModal('${stock.symbol}', 'buy')">BUY</button>
+                    <button class="trade-btn sell-btn" onclick="openTradeModal('${stock.symbol}', 'sell')">SELL</button>
+                `;
+                
+                stockList.appendChild(stockItem);
+            });
+        }
+
+        function updatePortfolio() {
+            const portfolio = document.getElementById('portfolio');
+            portfolio.innerHTML = '';
+            
+            if (Object.keys(gameState.portfolio).length === 0) {
+                portfolio.innerHTML = '<div style="text-align: center; color: #888;">No stocks owned</div>';
+                return;
+            }
+            
+            for (let symbol in gameState.portfolio) {
+                const shares = gameState.portfolio[symbol];
+                const stock = stocks.find(s => s.symbol === symbol);
+                if (stock && shares > 0) {
+                    const value = shares * stock.price;
+                    const portfolioItem = document.createElement('div');
+                    portfolioItem.className = 'portfolio-item';
+                    portfolioItem.innerHTML = `
+                        <div>
+                            <strong>${symbol}</strong><br>
+                            <small>${shares} shares</small>
+                        </div>
+                        <div style="text-align: right;">
+                            ${formatCurrency(value)}<br>
+                            <small>${formatCurrency(stock.price)}/share</small>
+                        </div>
+                    `;
+                    portfolio.appendChild(portfolioItem);
+                }
+            }
+        }
+
+        function updateStockPrices() {
+            const newsEvent = newsEvents[Math.floor(Math.random() * newsEvents.length)];
+            addNews(newsEvent.text);
+            
+            stocks.forEach(stock => {
+                let change = (Math.random() - 0.5) * stock.volatility;
+                
+                // Apply news impact
+                if (newsEvent.impact.type === stock.symbol || 
+                    newsEvent.impact.type === 'all' ||
+                    (newsEvent.impact.type === 'meme' && stock.meme)) {
+                    change += newsEvent.impact.strength;
+                }
+                
+                // Add some market correlation with extra volatility for meme stocks
+                const marketTrend = (Math.random() - 0.5) * 0.05;
+                if (stock.meme) {
+                    // Meme stocks have more extreme swings
+                    change += marketTrend * 2;
+                    
+                    // Random chance for massive moves (moon or crash)
+                    if (Math.random() < 0.05) {
+                        change += (Math.random() - 0.5) * 0.5; // ±25% swing
+                    }
+                } else {
+                    change += marketTrend;
+                }
+                
+                stock.change = change;
+                stock.price = Math.max(0.01, stock.price * (1 + change));
+            });
+        }
+
+        function addNews(text) {
+            const newsFeed = document.getElementById('news-feed');
+            const newsItem = document.createElement('div');
+            newsItem.className = 'news-item';
+            newsItem.innerHTML = `
+                <div class="news-time">Day ${gameState.day}</div>
+                <div>${text}</div>
+            `;
+            
+            newsFeed.insertBefore(newsItem, newsFeed.firstChild);
+            
+            // Keep only last 5 news items
+            while (newsFeed.children.length > 5) {
+                newsFeed.removeChild(newsFeed.lastChild);
+            }
+        }
+
+        function advanceDay() {
+            gameState.day++;
+            updateStockPrices();
+            updateDisplay();
+        }
+
+        function toggleAutoPlay() {
+            gameState.autoPlay = !gameState.autoPlay;
+            const btn = document.getElementById('auto-btn');
+            
+            if (gameState.autoPlay) {
+                btn.textContent = 'Auto Play ⏸️';
+                autoPlayInterval = setInterval(advanceDay, 2000);
+            } else {
+                btn.textContent = 'Auto Play ▶️';
+                if (autoPlayInterval) {
+                    clearInterval(autoPlayInterval);
+                    autoPlayInterval = null;
+                }
+            }
+        }
+
+        function resetGame() {
+            if (confirm('Are you sure you want to reset the game?')) {
+                console.log('Reset game confirmed'); // Debug
+                
+                // Stop auto play if running
+                if (autoPlayInterval) {
+                    clearInterval(autoPlayInterval);
+                    autoPlayInterval = null;
+                }
+                
+                // Reset auto play button
+                const btn = document.getElementById('auto-btn');
+                btn.textContent = 'Auto Play ▶️';
+                
+                // Reset game state
+                gameState.cash = 10000;
+                gameState.day = 1;
+                gameState.portfolio = {};
+                gameState.autoPlay = false;
+                gameState.currentTrade = null;
+                
+                console.log('Game state reset:', gameState); // Debug
+                
+                // Reset stock prices to defaults
+                stocks[0].price = 180;   // GME
+                stocks[0].change = 0;
+                stocks[1].price = 25;    // AMC
+                stocks[1].change = 0;
+                stocks[2].price = 250;   // TSLA
+                stocks[2].change = 0;
+                stocks[3].price = 0.75;  // DOGE
+                stocks[3].change = 0;
+                stocks[4].price = 15;    // MOON
+                stocks[4].change = 0;
+                stocks[5].price = 45;    // APE
+                stocks[5].change = 0;
+                stocks[6].price = 35;    // HODL
+                stocks[6].change = 0;
+                stocks[7].price = 12;    // YOLO
+                stocks[7].change = 0;
+                stocks[8].price = 5;     // BBBY
+                stocks[8].change = 0;
+                stocks[9].price = 4.50;  // NOK
+                stocks[9].change = 0;
+                
+                console.log('Stock prices reset'); // Debug
+                
+                // Clear news feed
+                const newsFeed = document.getElementById('news-feed');
+                newsFeed.innerHTML = '';
+                
+                // Force update display
+                console.log('Updating display...'); // Debug
+                updateDisplay();
+                
+                // Add welcome message
+                addNews('🦍 Welcome to Bulls, Bears & Apes! Time to diamond hand your way to the moon! 💎🚀');
+                
+                console.log('Reset complete'); // Debug
+            }
+        }
+
+        function openTradeModal(symbol, action) {
+            const stock = stocks.find(s => s.symbol === symbol);
+            const modal = document.getElementById('trade-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const sharesInput = document.getElementById('shares');
+            const modalContent = document.querySelector('.modal-content');
+            const warningMessage = document.getElementById('insufficient-funds-warning');
+            
+            // Reset modal styling
+            modalContent.classList.remove('insufficient-funds');
+            warningMessage.style.display = 'none';
+            
+            gameState.currentTrade = { symbol, action, stock };
+            
+            modalTitle.textContent = `${action.toUpperCase()} ${stock.name} (${symbol})`;
+            sharesInput.value = 1;
+            sharesInput.max = action === 'sell' ? (gameState.portfolio[symbol] || 0) : Math.floor(gameState.cash / stock.price);
+            
+            updateTotalCost();
+            modal.style.display = 'block';
+        }
+
+        function closeTradeModal() {
+            const modalContent = document.querySelector('.modal-content');
+            const warningMessage = document.getElementById('insufficient-funds-warning');
+            
+            modalContent.classList.remove('insufficient-funds');
+            warningMessage.style.display = 'none';
+            document.getElementById('trade-modal').style.display = 'none';
+            gameState.currentTrade = null;
+        }
+
+        function updateTotalCost() {
+            if (!gameState.currentTrade) return;
+            
+            const shares = parseInt(document.getElementById('shares').value) || 0;
+            const totalCost = shares * gameState.currentTrade.stock.price;
+            document.getElementById('total-cost').textContent = totalCost.toFixed(2);
+            
+            // Check for insufficient funds
+            const modalContent = document.querySelector('.modal-content');
+            const warningMessage = document.getElementById('insufficient-funds-warning');
+            
+            if (gameState.currentTrade.action === 'buy' && totalCost > gameState.cash) {
+                modalContent.classList.add('insufficient-funds');
+                warningMessage.style.display = 'block';
+            } else {
+                modalContent.classList.remove('insufficient-funds');
+                warningMessage.style.display = 'none';
+            }
+        }
+
+        function executeTrade() {
+            if (!gameState.currentTrade) return;
+            
+            const { symbol, action, stock } = gameState.currentTrade;
+            const shares = parseInt(document.getElementById('shares').value) || 0;
+            const totalCost = shares * stock.price;
+            
+            if (shares <= 0) {
+                alert('Please enter a valid number of shares.');
+                return;
+            }
+            
+            if (action === 'buy') {
+                if (totalCost > gameState.cash) {
+                    // Show insufficient funds warning
+                    const modalContent = document.querySelector('.modal-content');
+                    const warningMessage = document.getElementById('insufficient-funds-warning');
+                    modalContent.classList.add('insufficient-funds');
+                    warningMessage.style.display = 'block';
+                    return;
+                }
+                
+                gameState.cash -= totalCost;
+                gameState.portfolio[symbol] = (gameState.portfolio[symbol] || 0) + shares;
+                addNews(`💎 Bought ${shares} shares of ${symbol} for ${formatCurrency(totalCost)} - HODL!`);
+                
+            } else if (action === 'sell') {
+                const owned = gameState.portfolio[symbol] || 0;
+                if (shares > owned) {
+                    alert('You don\'t own enough shares!');
+                    return;
+                }
+                
+                gameState.cash += totalCost;
+                gameState.portfolio[symbol] -= shares;
+                if (gameState.portfolio[symbol] <= 0) {
+                    delete gameState.portfolio[symbol];
+                }
+                addNews(`📄 Sold ${shares} shares of ${symbol} for ${formatCurrency(totalCost)} - Paper hands?`);
+            }
+            
+            updateDisplay();
+            closeTradeModal();
+        }
+
+        // Event listeners
+        document.getElementById('shares').addEventListener('input', updateTotalCost);
+
+        // Initialize game
+        updateDisplay();
+        addNews('🦍 Welcome to Bulls, Bears & Apes! Time to diamond hand your way to the moon! 💎🚀');
+    </script>
+</body>
+</html>
