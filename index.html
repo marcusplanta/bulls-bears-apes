@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bulls & Bears & Apes - The Meme Stock Market Simulator</title>
+    <title>Bulls & Bears & Apes - The Ultimate Meme Stock Simulator</title>
     <style>
         * {
             margin: 0;
@@ -20,7 +20,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -32,6 +32,7 @@
             padding: 20px;
             background: rgba(0, 255, 65, 0.1);
             border-radius: 8px;
+            position: relative;
         }
 
         .header h1 {
@@ -40,9 +41,20 @@
             text-shadow: 0 0 10px #00ff41;
         }
 
+        .fear-greed-meter {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ffff00;
+            font-size: 0.9em;
+        }
+
         .game-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
             margin-bottom: 30px;
         }
@@ -53,6 +65,7 @@
             padding: 15px;
             border-radius: 8px;
             text-align: center;
+            position: relative;
         }
 
         .stat-card h3 {
@@ -61,7 +74,7 @@
         }
 
         .stat-value {
-            font-size: 1.5em;
+            font-size: 1.3em;
             font-weight: bold;
         }
 
@@ -70,7 +83,13 @@
 
         .main-content {
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
             gap: 20px;
         }
 
@@ -81,17 +100,28 @@
             padding: 20px;
         }
 
-        .news-portfolio-panel {
+        .options-panel {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #ff6b35;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .right-panel {
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
 
-        .news-panel, .portfolio-panel {
+        .news-panel, .portfolio-panel, .achievements-panel {
             background: rgba(0, 0, 0, 0.8);
             border: 1px solid #00ff41;
             border-radius: 8px;
             padding: 20px;
+        }
+
+        .achievements-panel {
+            border-color: #ffff00;
         }
 
         .panel-title {
@@ -110,13 +140,14 @@
 
         .stock-item {
             display: grid;
-            grid-template-columns: 1fr 100px 80px 60px 60px;
+            grid-template-columns: 2fr 100px 80px 60px 60px 60px;
             gap: 10px;
             padding: 10px;
             border: 1px solid #333;
             border-radius: 4px;
             align-items: center;
             background: rgba(0, 0, 0, 0.5);
+            position: relative;
         }
 
         .stock-item:hover {
@@ -124,7 +155,39 @@
             border-color: #00ff41;
         }
 
+        .stock-item.trending {
+            border-color: #ff6b35;
+            background: rgba(255, 107, 53, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        .stock-item.halted {
+            border-color: #ff4444;
+            background: rgba(255, 68, 68, 0.2);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px rgba(255, 107, 53, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(255, 107, 53, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(255, 107, 53, 0.5); }
+        }
+
         .stock-name {
+            font-weight: bold;
+        }
+
+        .stock-badges {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .badge {
+            background: #ff6b35;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.7em;
             font-weight: bold;
         }
 
@@ -136,6 +199,12 @@
         .stock-change {
             text-align: right;
             font-family: monospace;
+        }
+
+        .stock-extra {
+            font-size: 0.8em;
+            color: #888;
+            text-align: center;
         }
 
         .trade-btn {
@@ -155,6 +224,7 @@
 
         .buy-btn { border-color: #00ff00; color: #00ff00; }
         .sell-btn { border-color: #ff4444; color: #ff4444; }
+        .options-btn { border-color: #ff6b35; color: #ff6b35; }
 
         .news-item {
             background: rgba(0, 0, 0, 0.5);
@@ -162,6 +232,23 @@
             padding: 10px;
             margin-bottom: 10px;
             border-radius: 0 4px 4px 0;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .news-item.extreme {
+            border-left-color: #ff4444;
+            background: rgba(255, 68, 68, 0.1);
+            font-weight: bold;
+        }
+
+        .news-item.bullish {
+            border-left-color: #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
 
         .news-time {
@@ -177,6 +264,50 @@
             border-bottom: 1px solid #333;
         }
 
+        .options-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .option-item {
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid #ff6b35;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .achievement {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #333;
+        }
+
+        .achievement.unlocked {
+            border-color: #ffff00;
+            background: rgba(255, 255, 0, 0.1);
+            animation: glow 2s ease-in-out;
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px rgba(255, 255, 0, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(255, 255, 0, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(255, 255, 0, 0.5); }
+        }
+
+        .achievement-icon {
+            font-size: 1.5em;
+        }
+
+        .achievement-text {
+            flex: 1;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -190,11 +321,11 @@
 
         .modal-content {
             background: #0f1419;
-            margin: 15% auto;
+            margin: 10% auto;
             padding: 20px;
             border: 2px solid #00ff41;
             border-radius: 8px;
-            width: 400px;
+            width: 500px;
             max-width: 90%;
             transition: all 0.3s ease;
         }
@@ -241,7 +372,7 @@
             color: #ffff00;
         }
 
-        .form-group input {
+        .form-group input, .form-group select {
             background: #001122;
             border: 1px solid #00ff41;
             color: #00ff41;
@@ -290,13 +421,40 @@
             background: rgba(0, 255, 65, 0.2);
         }
 
-        @media (max-width: 768px) {
+        .market-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .market-open {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+        }
+
+        .market-closed {
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+        }
+
+        .market-halted {
+            background: rgba(255, 255, 0, 0.2);
+            border: 1px solid #ffff00;
+            color: #ffff00;
+        }
+
+        @media (max-width: 1200px) {
             .main-content {
                 grid-template-columns: 1fr;
             }
             
             .stock-item {
-                grid-template-columns: 1fr 80px 60px;
+                grid-template-columns: 2fr 80px 60px 40px;
                 gap: 5px;
             }
             
@@ -310,8 +468,12 @@
 <body>
     <div class="container">
         <div class="header">
+            <div class="fear-greed-meter">
+                <div>Fear & Greed Index</div>
+                <div id="fear-greed-value">50 - Neutral 😐</div>
+            </div>
             <h1>🐂 BULLS, 🐻 BEARS & APES 🦍</h1>
-            <p>Diamond Hands to the Moon! 🚀💎</p>
+            <p>Diamond Hands to the Moon! 💎🚀</p>
         </div>
 
         <div class="game-stats">
@@ -324,6 +486,10 @@
                 <div class="stat-value" id="portfolio-value">$0</div>
             </div>
             <div class="stat-card">
+                <h3>Options Value</h3>
+                <div class="stat-value" id="options-value">$0</div>
+            </div>
+            <div class="stat-card">
                 <h3>Total Worth</h3>
                 <div class="stat-value" id="total-worth">$10,000</div>
             </div>
@@ -331,21 +497,38 @@
                 <h3>Day</h3>
                 <div class="stat-value" id="day">1</div>
             </div>
+            <div class="stat-card">
+                <h3>Achievements</h3>
+                <div class="stat-value" id="achievement-count">0/15</div>
+            </div>
         </div>
 
         <div class="controls">
             <button class="time-control" onclick="advanceDay()">Next Day ⏭️</button>
             <button class="time-control" onclick="toggleAutoPlay()" id="auto-btn">Auto Play ▶️</button>
             <button class="time-control" onclick="resetGame()">Reset Game 🔄</button>
+            <span class="market-status market-open" id="market-status">🟢 Market Open</span>
         </div>
 
         <div class="main-content">
-            <div class="stocks-panel">
-                <h2 class="panel-title">📈 STOCK MARKET</h2>
-                <div class="stock-list" id="stock-list"></div>
+            <div class="left-panel">
+                <div class="stocks-panel">
+                    <h2 class="panel-title">📈 STOCK MARKET</h2>
+                    <div class="stock-list" id="stock-list"></div>
+                </div>
+
+                <div class="options-panel">
+                    <h2 class="panel-title" style="color: #ff6b35;">📊 YOUR OPTIONS POSITIONS</h2>
+                    <div id="options-list"></div>
+                </div>
             </div>
 
-            <div class="news-portfolio-panel">
+            <div class="right-panel">
+                <div class="achievements-panel">
+                    <h3 class="panel-title" style="color: #ffff00;">🏆 ACHIEVEMENTS</h3>
+                    <div id="achievements"></div>
+                </div>
+
                 <div class="news-panel">
                     <h3 class="panel-title">📰 MARKET NEWS</h3>
                     <div id="news-feed"></div>
@@ -383,29 +566,110 @@
         </div>
     </div>
 
+    <!-- Options Modal -->
+    <div id="options-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeOptionsModal()">&times;</span>
+            <h2 id="options-modal-title">Options Trading</h2>
+            <div class="trade-form">
+                <div class="form-group">
+                    <label for="option-type">Option Type:</label>
+                    <select id="option-type">
+                        <option value="call">Call (Bullish) 🚀</option>
+                        <option value="put">Put (Bearish) 🐻</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="option-contracts">Number of Contracts:</label>
+                    <input type="number" id="option-contracts" min="1" value="1">
+                </div>
+                <div class="form-group">
+                    <label for="strike-price">Strike Price: $<span id="strike-price">100</span></label>
+                    <input type="range" id="strike-slider" min="1" max="1000" value="100">
+                </div>
+                <div class="form-group">
+                    <label for="expiration">Expiration:</label>
+                    <select id="expiration">
+                        <option value="1">1 Day (YOLO) 💀</option>
+                        <option value="7">1 Week</option>
+                        <option value="30">1 Month</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Premium Cost: $<span id="option-cost">0</span></label>
+                </div>
+                <div class="form-buttons">
+                    <button class="btn" onclick="executeOptionsTrade()">Buy Option 🎰</button>
+                    <button class="btn" onclick="closeOptionsModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         let gameState = {
             cash: 10000,
             day: 1,
             portfolio: {},
+            options: [],
             autoPlay: false,
-            currentTrade: null
+            currentTrade: null,
+            currentOptionsTrade: null,
+            fearGreed: 50,
+            marketOpen: true,
+            achievements: {},
+            extremeEventCooldown: 0
         };
 
         const stocks = [
-            { symbol: 'GME', name: '🎮 GameStop Corp', price: 180, change: 0, volatility: 0.30, meme: true },
-            { symbol: 'AMC', name: '🍿 AMC Entertainment', price: 25, change: 0, volatility: 0.35, meme: true },
-            { symbol: 'TSLA', name: '🚗 Tesla Inc', price: 250, change: 0, volatility: 0.28, meme: true },
-            { symbol: 'DOGE', name: '🐕 DogeCoin Fund', price: 0.75, change: 0, volatility: 0.40, meme: true },
-            { symbol: 'MOON', name: '🚀 MoonShot Corp', price: 15, change: 0, volatility: 0.50, meme: true },
-            { symbol: 'APE', name: '🦍 Ape Strong Holdings', price: 45, change: 0, volatility: 0.32, meme: true },
-            { symbol: 'HODL', name: '💎 Diamond Hands ETF', price: 35, change: 0, volatility: 0.25, meme: true },
-            { symbol: 'YOLO', name: '🎯 YOLO Ventures', price: 12, change: 0, volatility: 0.45, meme: true },
-            { symbol: 'BBBY', name: '🛏️ Bed Bath Beyond', price: 5, change: 0, volatility: 0.38, meme: true },
-            { symbol: 'NOK', name: '📱 Nokia Corp', price: 4.50, change: 0, volatility: 0.20, meme: false }
+            { symbol: 'GME', name: '🎮 GameStop Corp', price: 180, change: 0, volatility: 0.30, meme: true, shortInterest: 0.25, volume: 1.0, trending: false, halted: false },
+            { symbol: 'AMC', name: '🍿 AMC Entertainment', price: 25, change: 0, volatility: 0.35, meme: true, shortInterest: 0.20, volume: 1.0, trending: false, halted: false },
+            { symbol: 'TSLA', name: '🚗 Tesla Inc', price: 250, change: 0, volatility: 0.28, meme: true, shortInterest: 0.15, volume: 1.0, trending: false, halted: false },
+            { symbol: 'DOGE', name: '🐕 DogeCoin Fund', price: 0.75, change: 0, volatility: 0.40, meme: true, shortInterest: 0.05, volume: 1.0, trending: false, halted: false },
+            { symbol: 'MOON', name: '🚀 MoonShot Corp', price: 15, change: 0, volatility: 0.50, meme: true, shortInterest: 0.30, volume: 1.0, trending: false, halted: false },
+            { symbol: 'APE', name: '🦍 Ape Strong Holdings', price: 45, change: 0, volatility: 0.32, meme: true, shortInterest: 0.35, volume: 1.0, trending: false, halted: false },
+            { symbol: 'HODL', name: '💎 Diamond Hands ETF', price: 35, change: 0, volatility: 0.25, meme: true, shortInterest: 0.10, volume: 1.0, trending: false, halted: false },
+            { symbol: 'YOLO', name: '🎯 YOLO Ventures', price: 12, change: 0, volatility: 0.45, meme: true, shortInterest: 0.40, volume: 1.0, trending: false, halted: false },
+            { symbol: 'BBBY', name: '🛏️ Bed Bath Beyond', price: 5, change: 0, volatility: 0.38, meme: true, shortInterest: 0.50, volume: 1.0, trending: false, halted: false },
+            { symbol: 'HOOD', name: '🏹 Robinhood Markets', price: 15, change: 0, volatility: 0.35, meme: true, shortInterest: 0.25, volume: 1.0, trending: false, halted: false },
+            { symbol: 'WISH', name: '⭐ ContextLogic Wish', price: 2.50, change: 0, volatility: 0.45, meme: true, shortInterest: 0.30, volume: 1.0, trending: false, halted: false },
+            { symbol: 'CLOV', name: '🍀 Clover Health', price: 3.25, change: 0, volatility: 0.40, meme: true, shortInterest: 0.35, volume: 1.0, trending: false, halted: false },
+            { symbol: 'SNDL', name: '🌿 Sundial Growers', price: 0.50, change: 0, volatility: 0.55, meme: true, shortInterest: 0.20, volume: 1.0, trending: false, halted: false },
+            { symbol: 'NOK', name: '📱 Nokia Corp', price: 4.50, change: 0, volatility: 0.20, meme: false, shortInterest: 0.05, volume: 1.0, trending: false, halted: false }
         ];
 
-        const newsEvents = [
+        const achievements = [
+            { id: 'diamond_hands', name: 'Diamond Hands 💎', desc: 'Hold through a -50% drawdown', icon: '💎' },
+            { id: 'paper_hands', name: 'Paper Hands 📄', desc: 'Sell at the worst moment', icon: '📄' },
+            { id: 'to_the_moon', name: 'To The Moon 🚀', desc: '1000% gain on a single stock', icon: '🚀' },
+            { id: 'bag_holder', name: 'Bag Holder 💼', desc: 'Down 90% on a position', icon: '💼' },
+            { id: 'yolo_king', name: 'YOLO King 👑', desc: 'Buy 10 options contracts at once', icon: '👑' },
+            { id: 'short_squeeze', name: 'Squeeze Master 🗜️', desc: 'Profit from a short squeeze', icon: '🗜️' },
+            { id: 'millionaire', name: 'Millionaire 💰', desc: 'Reach $1,000,000 net worth', icon: '💰' },
+            { id: 'broke', name: 'Rekt 💀', desc: 'Lose 99% of starting capital', icon: '💀' },
+            { id: 'day_trader', name: 'Day Trader ⚡', desc: 'Make 50 trades', icon: '⚡' },
+            { id: 'fomo_master', name: 'FOMO Master 🔥', desc: 'Buy during trending spikes', icon: '🔥' },
+            { id: 'options_addict', name: 'Options Addict 🎰', desc: 'Buy 100 options contracts', icon: '🎰' },
+            { id: 'diversified', name: 'Diversified 🌈', desc: 'Own all 14 stocks at once', icon: '🌈' },
+            { id: 'crash_survivor', name: 'Crash Survivor 🦾', desc: 'Survive market crash with gains', icon: '🦾' },
+            { id: 'meme_lord', name: 'Meme Lord 👑', desc: 'Only trade meme stocks for 30 days', icon: '👑' },
+            { id: 'whale', name: 'Whale 🐋', desc: 'Make a single trade over $100k', icon: '🐋' }
+        ];
+
+        const extremeEvents = [
+            { text: "🚨 MARGIN CALLS! Major hedge fund liquidating positions", impact: { type: 'all', strength: -0.40 }, extreme: true },
+            { text: "🚀 SHORT SQUEEZE INITIATED! Gamma ramp activated", impact: { type: 'meme', strength: 0.80 }, extreme: true },
+            { text: "💀 BANKRUPTCY FILING! Company in financial ruin", impact: { type: 'random', strength: -0.90 }, extreme: true },
+            { text: "🌙 SURPRISE ACQUISITION at 500% premium!", impact: { type: 'random', strength: 5.0 }, extreme: true },
+            { text: "⚡ CIRCUIT BREAKER! Trading halted on multiple stocks", impact: { type: 'halt', strength: 0 }, extreme: true },
+            { text: "🔥 SOCIAL MEDIA FRENZY! Retail army mobilizing", impact: { type: 'trending', strength: 0.60 }, extreme: true },
+            { text: "💸 MASSIVE RUG PULL! Insiders dumping shares", impact: { type: 'random', strength: -0.60 }, extreme: true },
+            { text: "🦍 APE NATION ASSEMBLE! Coordinated buying spree", impact: { type: 'meme', strength: 0.45 }, extreme: true },
+            { text: "📉 FLASH CRASH! Algorithmic trading gone wrong", impact: { type: 'all', strength: -0.25 }, extreme: true },
+            { text: "🚀🚀 DOUBLE MOON MISSION! Two stocks squeezing simultaneously", impact: { type: 'double_moon', strength: 0.75 }, extreme: true }
+        ];
+
+        const regularNews = [
             { text: "🚀 Apes together strong! Reddit rally continues", impact: { type: 'meme', strength: 0.15 } },
             { text: "💎 Diamond hands hold the line against shorts", impact: { type: 'GME', strength: 0.20 } },
             { text: "🦍 Retail investors refuse to sell", impact: { type: 'meme', strength: 0.12 } },
@@ -428,10 +692,28 @@
             { text: "🔥 Another short squeeze brewing", impact: { type: 'meme', strength: 0.18 } },
             { text: "💀 Bears getting rekt by diamond hands", impact: { type: 'meme', strength: 0.16 } },
             { text: "🎪 Meme stock circus continues", impact: { type: 'meme', strength: 0.08 } },
-            { text: "📉 Reality check: fundamentals matter", impact: { type: 'all', strength: -0.12 } }
+            { text: "📉 Reality check: fundamentals matter", impact: { type: 'all', strength: -0.12 } },
+            { text: "🏹 Robinhood faces user backlash again", impact: { type: 'HOOD', strength: -0.18 } },
+            { text: "⭐ WISH disappoints earnings expectations", impact: { type: 'WISH', strength: -0.22 } },
+            { text: "🍀 CLOV squeeze rumors circulating", impact: { type: 'CLOV', strength: 0.25 } },
+            { text: "🌿 SNDL penny stock pump incoming", impact: { type: 'SNDL', strength: 0.40 } },
+            { text: "💰 Institutional investors buying the dip", impact: { type: 'all', strength: 0.08 } },
+            { text: "🤖 Trading bots malfunction causes chaos", impact: { type: 'all', strength: -0.15 } },
+            { text: "📱 Social media influencer pumps stock", impact: { type: 'random', strength: 0.30 } },
+            { text: "🔍 Short sellers covering positions", impact: { type: 'meme', strength: 0.12 } },
+            { text: "💎 Another diamond hands success story", impact: { type: 'meme', strength: 0.10 } },
+            { text: "📈 Pre-market futures showing green", impact: { type: 'all', strength: 0.05 } },
+            { text: "🌊 Tsunami of retail buying power", impact: { type: 'meme', strength: 0.20 } },
+            { text: "💣 Options chain explosion imminent", impact: { type: 'random', strength: 0.35 } },
+            { text: "🎭 Market manipulation accusations fly", impact: { type: 'meme', strength: -0.08 } },
+            { text: "🚁 Helicopter money policy announced", impact: { type: 'all', strength: 0.15 } },
+            { text: "🔥🔥 Double down Friday begins", impact: { type: 'meme', strength: 0.25 } },
+            { text: "💪 Retail strength growing stronger", impact: { type: 'meme', strength: 0.18 } }
         ];
 
         let autoPlayInterval = null;
+        let totalTrades = 0;
+        let optionsContractsBought = 0;
 
         function formatCurrency(amount) {
             return new Intl.NumberFormat('en-US', {
@@ -440,10 +722,147 @@
             }).format(amount);
         }
 
-        function updateDisplay() {
-            document.getElementById('cash').textContent = formatCurrency(gameState.cash);
-            document.getElementById('day').textContent = gameState.day;
+        function updateFearGreed() {
+            let avgChange = 0;
+            stocks.forEach(stock => avgChange += stock.change);
+            avgChange = avgChange / stocks.length;
             
+            gameState.fearGreed = Math.max(0, Math.min(100, gameState.fearGreed + (avgChange * 100)));
+            
+            let sentiment = "";
+            let emoji = "";
+            if (gameState.fearGreed < 20) { sentiment = "Extreme Fear"; emoji = "😱"; }
+            else if (gameState.fearGreed < 40) { sentiment = "Fear"; emoji = "😨"; }
+            else if (gameState.fearGreed < 60) { sentiment = "Neutral"; emoji = "😐"; }
+            else if (gameState.fearGreed < 80) { sentiment = "Greed"; emoji = "🤑"; }
+            else { sentiment = "Extreme Greed"; emoji = "🚀"; }
+            
+            document.getElementById('fear-greed-value').textContent = `${Math.round(gameState.fearGreed)} - ${sentiment} ${emoji}`;
+        }
+
+        function updateMarketStatus() {
+            const statusEl = document.getElementById('market-status');
+            if (!gameState.marketOpen) {
+                statusEl.textContent = "🔴 Market Closed";
+                statusEl.className = "market-status market-closed";
+            } else if (stocks.some(s => s.halted)) {
+                statusEl.textContent = "🟡 Trading Halted";
+                statusEl.className = "market-status market-halted";
+            } else {
+                statusEl.textContent = "🟢 Market Open";
+                statusEl.className = "market-status market-open";
+            }
+        }
+
+        function checkAchievements() {
+            const totalWorth = gameState.cash + getPortfolioValue() + getOptionsValue();
+            const startingCapital = 10000;
+            
+            // Diamond Hands - Hold through -50% drawdown
+            let maxDrawdown = 0;
+            for (let symbol in gameState.portfolio) {
+                const stock = stocks.find(s => s.symbol === symbol);
+                if (stock && gameState.portfolio[symbol] > 0) {
+                    // This is simplified - in real implementation you'd track purchase prices
+                    if (stock.change < -0.5) {
+                        unlockAchievement('diamond_hands');
+                    }
+                }
+            }
+            
+            // Paper Hands - Sell during a major dip
+            // This would be tracked in trade execution
+            
+            // To The Moon - 1000% gain (simplified check)
+            for (let symbol in gameState.portfolio) {
+                const stock = stocks.find(s => s.symbol === symbol);
+                if (stock && gameState.portfolio[symbol] > 0 && stock.price > 1000) {
+                    unlockAchievement('to_the_moon');
+                }
+            }
+            
+            // Bag Holder - Down 90% on a position
+            for (let symbol in gameState.portfolio) {
+                const stock = stocks.find(s => s.symbol === symbol);
+                if (stock && gameState.portfolio[symbol] > 0 && stock.change < -0.9) {
+                    unlockAchievement('bag_holder');
+                }
+            }
+            
+            // YOLO King - Buy 10 options at once (tracked in options trading)
+            
+            // Millionaire
+            if (totalWorth >= 1000000) {
+                unlockAchievement('millionaire');
+            }
+            
+            // Rekt - Lose 99% of starting capital
+            if (totalWorth <= startingCapital * 0.01) {
+                unlockAchievement('broke');
+            }
+            
+            // Day Trader - Make 50 trades
+            if (totalTrades >= 50) {
+                unlockAchievement('day_trader');
+            }
+            
+            // Options Addict - Buy 100 options contracts
+            if (optionsContractsBought >= 100) {
+                unlockAchievement('options_addict');
+            }
+            
+            // Diversified - Own all 14 stocks
+            if (Object.keys(gameState.portfolio).length >= 14) {
+                let hasAll = true;
+                stocks.forEach(stock => {
+                    if (!gameState.portfolio[stock.symbol] || gameState.portfolio[stock.symbol] === 0) {
+                        hasAll = false;
+                    }
+                });
+                if (hasAll) {
+                    unlockAchievement('diversified');
+                }
+            }
+        }
+
+        function unlockAchievement(id) {
+            if (!gameState.achievements[id]) {
+                gameState.achievements[id] = true;
+                const achievement = achievements.find(a => a.id === id);
+                if (achievement) {
+                    addNews(`🏆 ACHIEVEMENT UNLOCKED: ${achievement.name} - ${achievement.desc}`);
+                    setTimeout(() => updateAchievements(), 100);
+                }
+            }
+        }
+
+        function updateAchievements() {
+            const container = document.getElementById('achievements');
+            container.innerHTML = '';
+            
+            let unlockedCount = 0;
+            achievements.forEach(achievement => {
+                const div = document.createElement('div');
+                div.className = 'achievement';
+                if (gameState.achievements[achievement.id]) {
+                    div.classList.add('unlocked');
+                    unlockedCount++;
+                }
+                
+                div.innerHTML = `
+                    <div class="achievement-icon">${achievement.icon}</div>
+                    <div class="achievement-text">
+                        <strong>${achievement.name}</strong><br>
+                        <small>${achievement.desc}</small>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            
+            document.getElementById('achievement-count').textContent = `${unlockedCount}/${achievements.length}`;
+        }
+
+        function getPortfolioValue() {
             let portfolioValue = 0;
             for (let symbol in gameState.portfolio) {
                 const stock = stocks.find(s => s.symbol === symbol);
@@ -451,12 +870,51 @@
                     portfolioValue += gameState.portfolio[symbol] * stock.price;
                 }
             }
+            return portfolioValue;
+        }
+
+        function getOptionsValue() {
+            let optionsValue = 0;
+            const currentDay = gameState.day;
+            
+            gameState.options.forEach(option => {
+                if (option.expiration > currentDay) {
+                    const stock = stocks.find(s => s.symbol === option.symbol);
+                    if (stock) {
+                        let intrinsicValue = 0;
+                        if (option.type === 'call' && stock.price > option.strike) {
+                            intrinsicValue = (stock.price - option.strike) * option.contracts * 100;
+                        } else if (option.type === 'put' && stock.price < option.strike) {
+                            intrinsicValue = (option.strike - stock.price) * option.contracts * 100;
+                        }
+                        
+                        // Add time value (simplified)
+                        const timeValue = option.premium * 0.5 * (option.expiration - currentDay) / 30;
+                        optionsValue += intrinsicValue + timeValue;
+                    }
+                }
+            });
+            
+            return Math.max(0, optionsValue);
+        }
+
+        function updateDisplay() {
+            document.getElementById('cash').textContent = formatCurrency(gameState.cash);
+            document.getElementById('day').textContent = gameState.day;
+            
+            const portfolioValue = getPortfolioValue();
+            const optionsValue = getOptionsValue();
             
             document.getElementById('portfolio-value').textContent = formatCurrency(portfolioValue);
-            document.getElementById('total-worth').textContent = formatCurrency(gameState.cash + portfolioValue);
+            document.getElementById('options-value').textContent = formatCurrency(optionsValue);
+            document.getElementById('total-worth').textContent = formatCurrency(gameState.cash + portfolioValue + optionsValue);
             
             updateStockList();
             updatePortfolio();
+            updateOptionsList();
+            updateFearGreed();
+            updateMarketStatus();
+            checkAchievements();
         }
 
         function updateStockList() {
@@ -467,26 +925,35 @@
                 const stockItem = document.createElement('div');
                 stockItem.className = 'stock-item';
                 
-                // Apply meme stock styling to all stocks including Nokia
-                if (stock.meme || stock.symbol === 'NOK') {
-                    stockItem.style.borderColor = '#ff6b35';
-                    stockItem.style.background = 'rgba(255, 107, 53, 0.1)';
-                }
+                if (stock.trending) stockItem.classList.add('trending');
+                if (stock.halted) stockItem.classList.add('halted');
                 
                 const changeClass = stock.change >= 0 ? 'positive' : 'negative';
                 const changeSymbol = stock.change >= 0 ? '+' : '';
                 
-                // Add rocket emoji for big gains
                 let rocketEmoji = '';
-                if (stock.change > 0.1) rocketEmoji = ' 🚀';
+                if (stock.change > 0.2) rocketEmoji = ' 🚀🚀';
+                else if (stock.change > 0.1) rocketEmoji = ' 🚀';
+                else if (stock.change < -0.2) rocketEmoji = ' 💀💀';
                 else if (stock.change < -0.1) rocketEmoji = ' 💀';
                 
+                let badges = '';
+                if (stock.trending) badges += '<span class="badge">🔥 TRENDING</span>';
+                if (stock.shortInterest > 0.3) badges += '<span class="badge">HIGH SHORT</span>';
+                if (stock.volume > 2) badges += '<span class="badge">HIGH VOLUME</span>';
+                if (stock.halted) badges += '<span class="badge" style="background: #ff4444;">HALTED</span>';
+                
                 stockItem.innerHTML = `
-                    <div class="stock-name">${stock.symbol} - ${stock.name}</div>
+                    <div>
+                        <div class="stock-name">${stock.symbol} - ${stock.name}</div>
+                        <div class="stock-badges">${badges}</div>
+                    </div>
                     <div class="stock-price">${formatCurrency(stock.price)}</div>
                     <div class="stock-change ${changeClass}">${changeSymbol}${(stock.change * 100).toFixed(2)}%${rocketEmoji}</div>
-                    <button class="trade-btn buy-btn" onclick="openTradeModal('${stock.symbol}', 'buy')">BUY</button>
-                    <button class="trade-btn sell-btn" onclick="openTradeModal('${stock.symbol}', 'sell')">SELL</button>
+                    <div class="stock-extra">SI: ${(stock.shortInterest * 100).toFixed(0)}%</div>
+                    <button class="trade-btn buy-btn" onclick="openTradeModal('${stock.symbol}', 'buy')" ${stock.halted || !gameState.marketOpen ? 'disabled' : ''}>BUY</button>
+                    <button class="trade-btn sell-btn" onclick="openTradeModal('${stock.symbol}', 'sell')" ${stock.halted || !gameState.marketOpen ? 'disabled' : ''}>SELL</button>
+                    <button class="trade-btn options-btn" onclick="openOptionsModal('${stock.symbol}')" ${stock.halted || !gameState.marketOpen ? 'disabled' : ''}>OPTIONS</button>
                 `;
                 
                 stockList.appendChild(stockItem);
@@ -509,9 +976,14 @@
                     const value = shares * stock.price;
                     const portfolioItem = document.createElement('div');
                     portfolioItem.className = 'portfolio-item';
+                    
+                    let statusEmoji = '';
+                    if (stock.change > 0.1) statusEmoji = ' 🚀';
+                    else if (stock.change < -0.1) statusEmoji = ' 💀';
+                    
                     portfolioItem.innerHTML = `
                         <div>
-                            <strong>${symbol}</strong><br>
+                            <strong>${symbol}${statusEmoji}</strong><br>
                             <small>${shares} shares</small>
                         </div>
                         <div style="text-align: right;">
@@ -524,43 +996,272 @@
             }
         }
 
-        function updateStockPrices() {
-            const newsEvent = newsEvents[Math.floor(Math.random() * newsEvents.length)];
-            addNews(newsEvent.text);
+        function updateOptionsList() {
+            const optionsList = document.getElementById('options-list');
+            optionsList.innerHTML = '';
             
+            if (gameState.options.length === 0) {
+                optionsList.innerHTML = '<div style="text-align: center; color: #888;">No options positions</div>';
+                return;
+            }
+            
+            const currentDay = gameState.day;
+            
+            gameState.options.forEach((option, index) => {
+                const stock = stocks.find(s => s.symbol === option.symbol);
+                if (!stock) return;
+                
+                const daysLeft = option.expiration - currentDay;
+                let intrinsicValue = 0;
+                
+                if (option.type === 'call' && stock.price > option.strike) {
+                    intrinsicValue = (stock.price - option.strike) * option.contracts * 100;
+                } else if (option.type === 'put' && stock.price < option.strike) {
+                    intrinsicValue = (option.strike - stock.price) * option.contracts * 100;
+                }
+                
+                const totalValue = Math.max(0, intrinsicValue);
+                const profitLoss = totalValue - option.premium;
+                const plClass = profitLoss >= 0 ? 'positive' : 'negative';
+                
+                let statusText = '';
+                if (daysLeft <= 0) {
+                    statusText = '💀 EXPIRED';
+                } else if (daysLeft <= 1) {
+                    statusText = '⚠️ EXPIRES TODAY';
+                } else {
+                    statusText = `${daysLeft}d left`;
+                }
+                
+                const optionItem = document.createElement('div');
+                optionItem.className = 'option-item';
+                optionItem.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>${option.symbol} ${formatCurrency(option.strike)} ${option.type.toUpperCase()}</strong><br>
+                            <small>${option.contracts} contracts • ${statusText}</small>
+                        </div>
+                        <div style="text-align: right;">
+                            ${formatCurrency(totalValue)}<br>
+                            <small class="${plClass}">${profitLoss >= 0 ? '+' : ''}${formatCurrency(profitLoss)}</small>
+                        </div>
+                    </div>
+                    ${daysLeft <= 0 || totalValue === 0 ? 
+                        `<button class="trade-btn" style="margin-top: 5px; width: 100%;" onclick="removeExpiredOption(${index})">Remove</button>` : 
+                        `<button class="trade-btn" style="margin-top: 5px; width: 100%;" onclick="sellOption(${index})">Sell Option</button>`
+                    }
+                `;
+                optionsList.appendChild(optionItem);
+            });
+        }
+
+        function removeExpiredOption(index) {
+            gameState.options.splice(index, 1);
+            updateDisplay();
+        }
+
+        function sellOption(index) {
+            const option = gameState.options[index];
+            const stock = stocks.find(s => s.symbol === option.symbol);
+            if (!stock) return;
+            
+            let intrinsicValue = 0;
+            if (option.type === 'call' && stock.price > option.strike) {
+                intrinsicValue = (stock.price - option.strike) * option.contracts * 100;
+            } else if (option.type === 'put' && stock.price < option.strike) {
+                intrinsicValue = (option.strike - stock.price) * option.contracts * 100;
+            }
+            
+            const sellValue = Math.max(0, intrinsicValue);
+            gameState.cash += sellValue;
+            
+            const profit = sellValue - option.premium;
+            const profitText = profit >= 0 ? `+${formatCurrency(profit)}` : formatCurrency(profit);
+            
+            addNews(`🎰 Sold ${option.contracts} ${option.symbol} ${option.type} options for ${formatCurrency(sellValue)} (${profitText})`);
+            
+            gameState.options.splice(index, 1);
+            updateDisplay();
+        }
+
+        function updateStockPrices() {
+            // Reduce extreme event cooldown
+            if (gameState.extremeEventCooldown > 0) {
+                gameState.extremeEventCooldown--;
+            }
+            
+            // Clear previous trending/halted status
+            stocks.forEach(stock => {
+                stock.trending = false;
+                if (stock.halted && Math.random() < 0.3) {
+                    stock.halted = false; // 30% chance to resume trading
+                }
+            });
+            
+            let newsEvent;
+            // 10% chance for extreme event if not on cooldown
+            if (Math.random() < 0.1 && gameState.extremeEventCooldown === 0) {
+                newsEvent = extremeEvents[Math.floor(Math.random() * extremeEvents.length)];
+                gameState.extremeEventCooldown = 5; // 5 day cooldown
+            } else {
+                newsEvent = regularNews[Math.floor(Math.random() * regularNews.length)];
+            }
+            
+            addNews(newsEvent.text, newsEvent.extreme);
+            
+            // Apply news impacts
             stocks.forEach(stock => {
                 let change = (Math.random() - 0.5) * stock.volatility;
                 
-                // Apply news impact
+                // Apply specific news impact
                 if (newsEvent.impact.type === stock.symbol || 
                     newsEvent.impact.type === 'all' ||
                     (newsEvent.impact.type === 'meme' && stock.meme)) {
                     change += newsEvent.impact.strength;
                 }
                 
-                // Add some market correlation with extra volatility for meme stocks
-                const marketTrend = (Math.random() - 0.5) * 0.05;
-                if (stock.meme) {
-                    // Meme stocks have more extreme swings
-                    change += marketTrend * 2;
-                    
-                    // Random chance for massive moves (moon or crash)
-                    if (Math.random() < 0.05) {
-                        change += (Math.random() - 0.5) * 0.5; // ±25% swing
+                // Special event handling
+                if (newsEvent.impact.type === 'random') {
+                    if (Math.random() < 0.3) { // 30% chance to affect this stock
+                        change += newsEvent.impact.strength;
                     }
-                } else {
-                    change += marketTrend;
                 }
                 
-                stock.change = change;
-                stock.price = Math.max(0.01, stock.price * (1 + change));
+                if (newsEvent.impact.type === 'trending') {
+                    if (Math.random() < 0.4) { // 40% chance to be trending
+                        stock.trending = true;
+                        change += newsEvent.impact.strength;
+                    }
+                }
+                
+                if (newsEvent.impact.type === 'halt') {
+                    if (Math.random() < 0.2) { // 20% chance to be halted
+                        stock.halted = true;
+                        change = 0; // No price movement when halted
+                    }
+                }
+                
+                if (newsEvent.impact.type === 'double_moon') {
+                    if (Math.random() < 0.2) { // 20% chance for each stock
+                        change += newsEvent.impact.strength;
+                        stock.trending = true;
+                    }
+                }
+                
+                // Market correlation with fear/greed influence
+                const marketTrend = (Math.random() - 0.5) * 0.08;
+                const fearGreedInfluence = (gameState.fearGreed - 50) / 1000; // -0.05 to +0.05
+                
+                if (stock.meme) {
+                    // Meme stocks more volatile and influenced by sentiment
+                    change += (marketTrend + fearGreedInfluence) * 2;
+                    
+                    // Random moonshots and crashes
+                    if (Math.random() < 0.03) {
+                        const extremeMove = (Math.random() - 0.3) * 0.8; // Biased towards gains
+                        change += extremeMove;
+                        if (extremeMove > 0.3) {
+                            stock.trending = true;
+                        }
+                    }
+                    
+                    // Short squeeze potential
+                    if (stock.shortInterest > 0.3 && change > 0.1) {
+                        const squeezeProbability = stock.shortInterest * change * 2;
+                        if (Math.random() < squeezeProbability) {
+                            change += 0.5; // Massive squeeze move
+                            addNews(`🚀🚀 SHORT SQUEEZE on ${stock.symbol}! Shorts covering rapidly!`, true);
+                            stock.trending = true;
+                            
+                            // Achievement check
+                            if (gameState.portfolio[stock.symbol] > 0) {
+                                unlockAchievement('short_squeeze');
+                            }
+                        }
+                    }
+                } else {
+                    change += marketTrend + fearGreedInfluence;
+                }
+                
+                // Circuit breaker - halt if move is too extreme
+                if (Math.abs(change) > 0.3 && !stock.halted) {
+                    if (Math.random() < 0.2) { // 20% chance to trigger circuit breaker
+                        stock.halted = true;
+                        change = Math.sign(change) * 0.2; // Limit the move
+                        addNews(`⚠️ CIRCUIT BREAKER triggered on ${stock.symbol}! Trading halted.`);
+                    }
+                }
+                
+                // Update volume based on change
+                stock.volume = Math.max(0.5, 1 + Math.abs(change) * 3);
+                
+                if (!stock.halted) {
+                    stock.change = change;
+                    stock.price = Math.max(0.01, stock.price * (1 + change));
+                    
+                    // Update short interest dynamically
+                    if (change > 0.2) {
+                        stock.shortInterest = Math.max(0.05, stock.shortInterest - 0.1); // Shorts cover
+                    } else if (change < -0.2) {
+                        stock.shortInterest = Math.min(0.6, stock.shortInterest + 0.05); // More shorts pile in
+                    }
+                }
+            });
+            
+            // Update options values and expire old ones
+            updateOptionsPositions();
+            
+            // Market can close occasionally
+            if (Math.random() < 0.05) { // 5% chance
+                gameState.marketOpen = false;
+                addNews("🔔 Market closed for special session");
+            } else if (!gameState.marketOpen && Math.random() < 0.3) { // 30% chance to reopen
+                gameState.marketOpen = true;
+                addNews("🔔 Market reopened for trading");
+            }
+        }
+
+        function updateOptionsPositions() {
+            const currentDay = gameState.day;
+            
+            // Remove expired options
+            gameState.options = gameState.options.filter(option => {
+                if (option.expiration <= currentDay) {
+                    const stock = stocks.find(s => s.symbol === option.symbol);
+                    if (stock) {
+                        let intrinsicValue = 0;
+                        if (option.type === 'call' && stock.price > option.strike) {
+                            intrinsicValue = (stock.price - option.strike) * option.contracts * 100;
+                        } else if (option.type === 'put' && stock.price < option.strike) {
+                            intrinsicValue = (option.strike - stock.price) * option.contracts * 100;
+                        }
+                        
+                        if (intrinsicValue > 0) {
+                            gameState.cash += intrinsicValue;
+                            const profit = intrinsicValue - option.premium;
+                            const profitText = profit >= 0 ? `+${formatCurrency(profit)}` : formatCurrency(profit);
+                            addNews(`💰 ${option.symbol} ${option.type} option auto-exercised for ${formatCurrency(intrinsicValue)} (${profitText})`);
+                        } else {
+                            addNews(`💀 ${option.symbol} ${option.type} option expired worthless (-${formatCurrency(option.premium)})`);
+                        }
+                    }
+                    return false; // Remove expired option
+                }
+                return true; // Keep active option
             });
         }
 
-        function addNews(text) {
+        function addNews(text, extreme = false) {
             const newsFeed = document.getElementById('news-feed');
             const newsItem = document.createElement('div');
             newsItem.className = 'news-item';
+            
+            if (extreme) {
+                newsItem.classList.add('extreme');
+            } else if (text.includes('🚀') || text.includes('💎') || text.includes('🦍')) {
+                newsItem.classList.add('bullish');
+            }
+            
             newsItem.innerHTML = `
                 <div class="news-time">Day ${gameState.day}</div>
                 <div>${text}</div>
@@ -568,8 +1269,8 @@
             
             newsFeed.insertBefore(newsItem, newsFeed.firstChild);
             
-            // Keep only last 5 news items
-            while (newsFeed.children.length > 5) {
+            // Keep only last 6 news items
+            while (newsFeed.children.length > 6) {
                 newsFeed.removeChild(newsFeed.lastChild);
             }
         }
@@ -586,7 +1287,7 @@
             
             if (gameState.autoPlay) {
                 btn.textContent = 'Auto Play ⏸️';
-                autoPlayInterval = setInterval(advanceDay, 2000);
+                autoPlayInterval = setInterval(advanceDay, 3000); // 3 seconds per day
             } else {
                 btn.textContent = 'Auto Play ▶️';
                 if (autoPlayInterval) {
@@ -597,10 +1298,8 @@
         }
 
         function resetGame() {
-            if (confirm('Are you sure you want to reset the game?')) {
-                console.log('Reset game confirmed'); // Debug
-                
-                // Stop auto play if running
+            if (confirm('Are you sure you want to reset the game? All progress will be lost!')) {
+                // Stop auto play
                 if (autoPlayInterval) {
                     clearInterval(autoPlayInterval);
                     autoPlayInterval = null;
@@ -611,50 +1310,45 @@
                 btn.textContent = 'Auto Play ▶️';
                 
                 // Reset game state
-                gameState.cash = 10000;
-                gameState.day = 1;
-                gameState.portfolio = {};
-                gameState.autoPlay = false;
-                gameState.currentTrade = null;
+                gameState = {
+                    cash: 10000,
+                    day: 1,
+                    portfolio: {},
+                    options: [],
+                    autoPlay: false,
+                    currentTrade: null,
+                    currentOptionsTrade: null,
+                    fearGreed: 50,
+                    marketOpen: true,
+                    achievements: {},
+                    extremeEventCooldown: 0
+                };
                 
-                console.log('Game state reset:', gameState); // Debug
+                // Reset counters
+                totalTrades = 0;
+                optionsContractsBought = 0;
                 
                 // Reset stock prices to defaults
-                stocks[0].price = 180;   // GME
-                stocks[0].change = 0;
-                stocks[1].price = 25;    // AMC
-                stocks[1].change = 0;
-                stocks[2].price = 250;   // TSLA
-                stocks[2].change = 0;
-                stocks[3].price = 0.75;  // DOGE
-                stocks[3].change = 0;
-                stocks[4].price = 15;    // MOON
-                stocks[4].change = 0;
-                stocks[5].price = 45;    // APE
-                stocks[5].change = 0;
-                stocks[6].price = 35;    // HODL
-                stocks[6].change = 0;
-                stocks[7].price = 12;    // YOLO
-                stocks[7].change = 0;
-                stocks[8].price = 5;     // BBBY
-                stocks[8].change = 0;
-                stocks[9].price = 4.50;  // NOK
-                stocks[9].change = 0;
-                
-                console.log('Stock prices reset'); // Debug
+                stocks.forEach((stock, index) => {
+                    const defaultPrices = [180, 25, 250, 0.75, 15, 45, 35, 12, 5, 15, 2.50, 3.25, 0.50, 4.50];
+                    stock.price = defaultPrices[index];
+                    stock.change = 0;
+                    stock.shortInterest = [0.25, 0.20, 0.15, 0.05, 0.30, 0.35, 0.10, 0.40, 0.50, 0.25, 0.30, 0.35, 0.20, 0.05][index];
+                    stock.volume = 1.0;
+                    stock.trending = false;
+                    stock.halted = false;
+                });
                 
                 // Clear news feed
                 const newsFeed = document.getElementById('news-feed');
                 newsFeed.innerHTML = '';
                 
-                // Force update display
-                console.log('Updating display...'); // Debug
+                // Update display
                 updateDisplay();
+                updateAchievements();
                 
                 // Add welcome message
                 addNews('🦍 Welcome to Bulls, Bears & Apes! Time to diamond hand your way to the moon! 💎🚀');
-                
-                console.log('Reset complete'); // Debug
             }
         }
 
@@ -724,7 +1418,6 @@
             
             if (action === 'buy') {
                 if (totalCost > gameState.cash) {
-                    // Show insufficient funds warning
                     const modalContent = document.querySelector('.modal-content');
                     const warningMessage = document.getElementById('insufficient-funds-warning');
                     modalContent.classList.add('insufficient-funds');
@@ -734,7 +1427,23 @@
                 
                 gameState.cash -= totalCost;
                 gameState.portfolio[symbol] = (gameState.portfolio[symbol] || 0) + shares;
-                addNews(`💎 Bought ${shares} shares of ${symbol} for ${formatCurrency(totalCost)} - HODL!`);
+                
+                // Check for achievements
+                if (stock.trending) {
+                    unlockAchievement('fomo_master');
+                }
+                
+                if (totalCost > 100000) {
+                    unlockAchievement('whale');
+                }
+                
+                totalTrades++;
+                
+                let tradeEmoji = '💎';
+                if (totalCost > 50000) tradeEmoji = '🐋';
+                else if (stock.trending) tradeEmoji = '🔥';
+                
+                addNews(`${tradeEmoji} Bought ${shares} shares of ${symbol} for ${formatCurrency(totalCost)} - HODL!`);
                 
             } else if (action === 'sell') {
                 const owned = gameState.portfolio[symbol] || 0;
@@ -748,19 +1457,151 @@
                 if (gameState.portfolio[symbol] <= 0) {
                     delete gameState.portfolio[symbol];
                 }
-                addNews(`📄 Sold ${shares} shares of ${symbol} for ${formatCurrency(totalCost)} - Paper hands?`);
+                
+                totalTrades++;
+                
+                // Check for paper hands achievement
+                if (stock.change < -0.3) {
+                    unlockAchievement('paper_hands');
+                }
+                
+                let sellEmoji = '📄';
+                if (stock.change > 0.5) sellEmoji = '💰';
+                else if (stock.change < -0.3) sellEmoji = '💀';
+                
+                addNews(`${sellEmoji} Sold ${shares} shares of ${symbol} for ${formatCurrency(totalCost)} - ${stock.change < -0.1 ? 'Paper hands?' : 'Smart move!'}`);
             }
             
             updateDisplay();
             closeTradeModal();
         }
 
+        function openOptionsModal(symbol) {
+            const stock = stocks.find(s => s.symbol === symbol);
+            const modal = document.getElementById('options-modal');
+            const modalTitle = document.getElementById('options-modal-title');
+            
+            gameState.currentOptionsTrade = { symbol, stock };
+            
+            modalTitle.textContent = `Options Trading - ${stock.name} (${symbol})`;
+            
+            // Set strike price slider
+            const strikeSlider = document.getElementById('strike-slider');
+            const strikeDisplay = document.getElementById('strike-price');
+            
+            strikeSlider.min = Math.max(1, Math.floor(stock.price * 0.5));
+            strikeSlider.max = Math.ceil(stock.price * 2);
+            strikeSlider.value = Math.round(stock.price);
+            strikeDisplay.textContent = strikeSlider.value;
+            
+            updateOptionsCost();
+            modal.style.display = 'block';
+        }
+
+        function closeOptionsModal() {
+            document.getElementById('options-modal').style.display = 'none';
+            gameState.currentOptionsTrade = null;
+        }
+
+        function updateOptionsCost() {
+            if (!gameState.currentOptionsTrade) return;
+            
+            const contracts = parseInt(document.getElementById('option-contracts').value) || 0;
+            const strikePrice = parseInt(document.getElementById('strike-price').textContent) || 0;
+            const optionType = document.getElementById('option-type').value;
+            const expiration = parseInt(document.getElementById('expiration').value) || 1;
+            
+            const stock = gameState.currentOptionsTrade.stock;
+            
+            // Simple options pricing model
+            const timeValue = Math.sqrt(expiration / 30) * stock.price * 0.1;
+            let intrinsicValue = 0;
+            
+            if (optionType === 'call' && stock.price > strikePrice) {
+                intrinsicValue = stock.price - strikePrice;
+            } else if (optionType === 'put' && stock.price < strikePrice) {
+                intrinsicValue = strikePrice - stock.price;
+            }
+            
+            const premiumPerShare = Math.max(0.01, intrinsicValue + timeValue * stock.volatility);
+            const totalCost = contracts * premiumPerShare * 100; // 100 shares per contract
+            
+            document.getElementById('option-cost').textContent = totalCost.toFixed(2);
+        }
+
+        function executeOptionsTrade() {
+            if (!gameState.currentOptionsTrade) return;
+            
+            const contracts = parseInt(document.getElementById('option-contracts').value) || 0;
+            const strikePrice = parseInt(document.getElementById('strike-price').textContent) || 0;
+            const optionType = document.getElementById('option-type').value;
+            const expiration = parseInt(document.getElementById('expiration').value) || 1;
+            const totalCost = parseFloat(document.getElementById('option-cost').textContent) || 0;
+            
+            if (contracts <= 0) {
+                alert('Please enter a valid number of contracts.');
+                return;
+            }
+            
+            if (totalCost > gameState.cash) {
+                alert('Insufficient funds for this options trade!');
+                return;
+            }
+            
+            gameState.cash -= totalCost;
+            
+            const option = {
+                symbol: gameState.currentOptionsTrade.symbol,
+                type: optionType,
+                strike: strikePrice,
+                contracts: contracts,
+                expiration: gameState.day + expiration,
+                premium: totalCost
+            };
+            
+            gameState.options.push(option);
+            optionsContractsBought += contracts;
+            
+            // Check achievements
+            if (contracts >= 10) {
+                unlockAchievement('yolo_king');
+            }
+            
+            const yoloEmoji = contracts >= 10 ? '👑' : contracts >= 5 ? '🎰' : '📈';
+            const directionEmoji = optionType === 'call' ? '🚀' : '🐻';
+            
+            addNews(`${yoloEmoji}${directionEmoji} Bought ${contracts} ${gameState.currentOptionsTrade.symbol} ${formatCurrency(strikePrice)} ${optionType.toUpperCase()} options for ${formatCurrency(totalCost)}! ${expiration === 1 ? 'YOLO play!' : ''}`);
+            
+            updateDisplay();
+            closeOptionsModal();
+        }
+
         // Event listeners
         document.getElementById('shares').addEventListener('input', updateTotalCost);
+        document.getElementById('option-contracts').addEventListener('input', updateOptionsCost);
+        document.getElementById('option-type').addEventListener('change', updateOptionsCost);
+        document.getElementById('expiration').addEventListener('change', updateOptionsCost);
+        document.getElementById('strike-slider').addEventListener('input', function() {
+            document.getElementById('strike-price').textContent = this.value;
+            updateOptionsCost();
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                advanceDay();
+            } else if (e.code === 'KeyR' && e.ctrlKey) {
+                e.preventDefault();
+                resetGame();
+            }
+        });
 
         // Initialize game
         updateDisplay();
-        addNews('🦍 Welcome to Bulls, Bears & Apes! Time to diamond hand your way to the moon! 💎🚀');
+        updateAchievements();
+        addNews('🦍 Welcome to Bulls, Bears & Apes! Diamond hands to the moon! 💎🚀');
+        addNews('💡 Pro tip: Use spacebar to advance days, watch for trending stocks 🔥');
     </script>
 </body>
 </html>
