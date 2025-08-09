@@ -1513,17 +1513,47 @@
             
             const stock = gameState.currentOptionsTrade.stock;
             
-            // Simple options pricing model
-            const timeValue = Math.sqrt(expiration / 30) * stock.price * 0.1;
+            // Intrinsic value (what the option is worth if exercised now)
             let intrinsicValue = 0;
-            
             if (optionType === 'call' && stock.price > strikePrice) {
                 intrinsicValue = stock.price - strikePrice;
             } else if (optionType === 'put' && stock.price < strikePrice) {
                 intrinsicValue = strikePrice - stock.price;
             }
             
-            const premiumPerShare = Math.max(0.01, intrinsicValue + timeValue * stock.volatility);
+            // Time value based on how much time is left and volatility
+            const timeValueBase = Math.sqrt(expiration / 30) * stock.price * stock.volatility * 0.15;
+            
+            // Moneyness factor - how close strike is to current price affects time value
+            const moneyness = Math.abs(stock.price - strikePrice) / stock.price;
+            
+            let timeValue;
+            if (optionType === 'call') {
+                // For calls: cheaper when strike is higher (further OTM)
+                // More expensive when strike is lower (closer to ITM)
+                if (strikePrice <= stock.price) {
+                    // ITM or ATM calls - higher time value
+                    timeValue = timeValueBase * (1.5 - moneyness);
+                } else {
+                    // OTM calls - lower time value, decreases as strike goes higher
+                    const otmFactor = Math.max(0.1, 1 - (moneyness * 2));
+                    timeValue = timeValueBase * otmFactor;
+                }
+            } else {
+                // For puts: cheaper when strike is lower (further OTM)
+                // More expensive when strike is higher (closer to ITM)
+                if (strikePrice >= stock.price) {
+                    // ITM or ATM puts - higher time value
+                    timeValue = timeValueBase * (1.5 - moneyness);
+                } else {
+                    // OTM puts - lower time value, decreases as strike goes lower
+                    const otmFactor = Math.max(0.1, 1 - (moneyness * 2));
+                    timeValue = timeValueBase * otmFactor;
+                }
+            }
+            
+            // Total premium = intrinsic value + time value
+            const premiumPerShare = Math.max(0.01, intrinsicValue + timeValue);
             const totalCost = contracts * premiumPerShare * 100; // 100 shares per contract
             
             document.getElementById('option-cost').textContent = totalCost.toFixed(2);
