@@ -657,16 +657,20 @@
         ];
 
         const extremeEvents = [
+            { text: "🚨 BLACK SWAN EVENT! Market in absolute freefall", impact: { type: 'all', strength: -0.65 }, extreme: true },
+            { text: "💥 FLASH CRASH! Algorithmic sell-off triggers panic", impact: { type: 'all', strength: -0.50 }, extreme: true },
             { text: "🚨 MARGIN CALLS! Major hedge fund liquidating positions", impact: { type: 'all', strength: -0.40 }, extreme: true },
             { text: "🚀 SHORT SQUEEZE INITIATED! Gamma ramp activated", impact: { type: 'meme', strength: 0.80 }, extreme: true },
-            { text: "💀 BANKRUPTCY FILING! Company in financial ruin", impact: { type: 'random', strength: -0.90 }, extreme: true },
-            { text: "🌙 SURPRISE ACQUISITION at 500% premium!", impact: { type: 'random', strength: 5.0 }, extreme: true },
+            { text: "💀 BANKRUPTCY FILING! Company in financial ruin", impact: { type: 'random', strength: -0.95 }, extreme: true },
+            { text: "🌙 SURPRISE ACQUISITION at 500% premium!", impact: { type: 'random', strength: 4.0 }, extreme: true },
             { text: "⚡ CIRCUIT BREAKER! Trading halted on multiple stocks", impact: { type: 'halt', strength: 0 }, extreme: true },
             { text: "🔥 SOCIAL MEDIA FRENZY! Retail army mobilizing", impact: { type: 'trending', strength: 0.60 }, extreme: true },
-            { text: "💸 MASSIVE RUG PULL! Insiders dumping shares", impact: { type: 'random', strength: -0.60 }, extreme: true },
+            { text: "💸 MASSIVE RUG PULL! Insiders dumping shares", impact: { type: 'random', strength: -0.75 }, extreme: true },
             { text: "🦍 APE NATION ASSEMBLE! Coordinated buying spree", impact: { type: 'meme', strength: 0.45 }, extreme: true },
-            { text: "📉 FLASH CRASH! Algorithmic trading gone wrong", impact: { type: 'all', strength: -0.25 }, extreme: true },
-            { text: "🚀🚀 DOUBLE MOON MISSION! Two stocks squeezing simultaneously", impact: { type: 'double_moon', strength: 0.75 }, extreme: true }
+            { text: "📉 MARKET MELTDOWN! Everything is blood red", impact: { type: 'all', strength: -0.35 }, extreme: true },
+            { text: "☄️ ASTEROID IMPACT ON ECONOMY! Doomsday scenario", impact: { type: 'all', strength: -0.80 }, extreme: true },
+            { text: "🚀🚀 DOUBLE MOON MISSION! Two stocks squeezing simultaneously", impact: { type: 'double_moon', strength: 0.75 }, extreme: true },
+            { text: "💀💀 LEHMAN 2.0! Financial system collapse imminent", impact: { type: 'all', strength: -0.70 }, extreme: true }
         ];
 
         const regularNews = [
@@ -727,7 +731,16 @@
             stocks.forEach(stock => avgChange += stock.change);
             avgChange = avgChange / stocks.length;
             
-            gameState.fearGreed = Math.max(0, Math.min(100, gameState.fearGreed + (avgChange * 100)));
+            // More gradual and realistic fear/greed movement
+            const changeImpact = avgChange * 50; // Reduced from 100
+            gameState.fearGreed = Math.max(0, Math.min(100, gameState.fearGreed + changeImpact));
+            
+            // Natural drift back toward neutral (50) over time
+            const neutralDrift = (50 - gameState.fearGreed) * 0.02;
+            gameState.fearGreed += neutralDrift;
+            
+            // Ensure bounds
+            gameState.fearGreed = Math.max(0, Math.min(100, gameState.fearGreed));
             
             let sentiment = "";
             let emoji = "";
@@ -1099,19 +1112,37 @@
             });
             
             let newsEvent;
-            // 10% chance for extreme event if not on cooldown
-            if (Math.random() < 0.1 && gameState.extremeEventCooldown === 0) {
+            // Increased chance for extreme events when greed/fear is high
+            let extremeChance = 0.08; // Base 8% chance
+            if (gameState.fearGreed > 80 || gameState.fearGreed < 20) {
+                extremeChance = 0.15; // 15% chance during extreme sentiment
+            }
+            
+            if (Math.random() < extremeChance && gameState.extremeEventCooldown === 0) {
                 newsEvent = extremeEvents[Math.floor(Math.random() * extremeEvents.length)];
-                gameState.extremeEventCooldown = 5; // 5 day cooldown
+                gameState.extremeEventCooldown = 3; // Reduced cooldown for more action
             } else {
                 newsEvent = regularNews[Math.floor(Math.random() * regularNews.length)];
             }
             
             addNews(newsEvent.text, newsEvent.extreme);
             
-            // Apply news impacts
+            // Calculate market-wide trend with mean reversion
+            const marketTrend = (Math.random() - 0.52) * 0.06; // Slight downward bias
+            const fearGreedInfluence = (gameState.fearGreed - 50) / 2000; // Reduced influence
+            
+            // Apply news impacts and price changes
             stocks.forEach(stock => {
-                let change = (Math.random() - 0.5) * stock.volatility;
+                // Base volatility-driven change (mean-reverting)
+                let change = (Math.random() - 0.51) * stock.volatility * 0.8; // Reduced volatility impact
+                
+                // Add mean reversion - stocks tend to drift back toward reasonable levels
+                const priceLevel = stock.price / (stock.symbol === 'TSLA' ? 250 : stock.symbol === 'GME' ? 180 : 50);
+                if (priceLevel > 3) {
+                    change -= 0.05; // Pull expensive stocks down
+                } else if (priceLevel < 0.3) {
+                    change += 0.03; // Pull cheap stocks up slightly
+                }
                 
                 // Apply specific news impact
                 if (newsEvent.impact.type === stock.symbol || 
@@ -1122,54 +1153,53 @@
                 
                 // Special event handling
                 if (newsEvent.impact.type === 'random') {
-                    if (Math.random() < 0.3) { // 30% chance to affect this stock
+                    if (Math.random() < 0.25) { // 25% chance to affect this stock
                         change += newsEvent.impact.strength;
                     }
                 }
                 
                 if (newsEvent.impact.type === 'trending') {
-                    if (Math.random() < 0.4) { // 40% chance to be trending
+                    if (Math.random() < 0.3) { // 30% chance to be trending
                         stock.trending = true;
                         change += newsEvent.impact.strength;
                     }
                 }
                 
                 if (newsEvent.impact.type === 'halt') {
-                    if (Math.random() < 0.2) { // 20% chance to be halted
+                    if (Math.random() < 0.25) { // 25% chance to be halted
                         stock.halted = true;
                         change = 0; // No price movement when halted
                     }
                 }
                 
                 if (newsEvent.impact.type === 'double_moon') {
-                    if (Math.random() < 0.2) { // 20% chance for each stock
+                    if (Math.random() < 0.15) { // 15% chance for each stock
                         change += newsEvent.impact.strength;
                         stock.trending = true;
                     }
                 }
                 
-                // Market correlation with fear/greed influence
-                const marketTrend = (Math.random() - 0.5) * 0.08;
-                const fearGreedInfluence = (gameState.fearGreed - 50) / 1000; // -0.05 to +0.05
+                // Market correlation with reduced influence
+                change += marketTrend + fearGreedInfluence;
                 
                 if (stock.meme) {
-                    // Meme stocks more volatile and influenced by sentiment
-                    change += (marketTrend + fearGreedInfluence) * 2;
+                    // Meme stocks more volatile but with bounds
+                    change *= 1.3; // Increased meme volatility but not excessive
                     
-                    // Random moonshots and crashes
-                    if (Math.random() < 0.03) {
-                        const extremeMove = (Math.random() - 0.3) * 0.8; // Biased towards gains
+                    // Random moonshots and crashes (reduced frequency)
+                    if (Math.random() < 0.02) { // Reduced from 0.03
+                        const extremeMove = (Math.random() - 0.4) * 0.6; // Reduced extreme moves
                         change += extremeMove;
-                        if (extremeMove > 0.3) {
+                        if (extremeMove > 0.2) {
                             stock.trending = true;
                         }
                     }
                     
                     // Short squeeze potential
-                    if (stock.shortInterest > 0.3 && change > 0.1) {
-                        const squeezeProbability = stock.shortInterest * change * 2;
+                    if (stock.shortInterest > 0.3 && change > 0.08) {
+                        const squeezeProbability = stock.shortInterest * change * 1.5; // Reduced multiplier
                         if (Math.random() < squeezeProbability) {
-                            change += 0.5; // Massive squeeze move
+                            change += 0.4; // Reduced squeeze intensity
                             addNews(`🚀🚀 SHORT SQUEEZE on ${stock.symbol}! Shorts covering rapidly!`, true);
                             stock.trending = true;
                             
@@ -1179,43 +1209,49 @@
                             }
                         }
                     }
-                } else {
-                    change += marketTrend + fearGreedInfluence;
                 }
                 
                 // Circuit breaker - halt if move is too extreme
-                if (Math.abs(change) > 0.3 && !stock.halted) {
-                    if (Math.random() < 0.2) { // 20% chance to trigger circuit breaker
+                if (Math.abs(change) > 0.25 && !stock.halted) {
+                    if (Math.random() < 0.3) { // 30% chance to trigger circuit breaker
                         stock.halted = true;
-                        change = Math.sign(change) * 0.2; // Limit the move
+                        change = Math.sign(change) * 0.15; // Limit the move
                         addNews(`⚠️ CIRCUIT BREAKER triggered on ${stock.symbol}! Trading halted.`);
                     }
                 }
                 
+                // Apply maximum daily change limits (like real markets)
+                change = Math.max(-0.30, Math.min(0.30, change)); // ±30% daily limit
+                
                 // Update volume based on change
-                stock.volume = Math.max(0.5, 1 + Math.abs(change) * 3);
+                stock.volume = Math.max(0.5, 1 + Math.abs(change) * 2);
                 
                 if (!stock.halted) {
                     stock.change = change;
-                    stock.price = Math.max(0.01, stock.price * (1 + change));
+                    const newPrice = stock.price * (1 + change);
+                    
+                    // Prevent prices from going too extreme
+                    stock.price = Math.max(0.01, Math.min(10000, newPrice)); // Price bounds
                     
                     // Update short interest dynamically
-                    if (change > 0.2) {
-                        stock.shortInterest = Math.max(0.05, stock.shortInterest - 0.1); // Shorts cover
-                    } else if (change < -0.2) {
-                        stock.shortInterest = Math.min(0.6, stock.shortInterest + 0.05); // More shorts pile in
+                    if (change > 0.15) {
+                        stock.shortInterest = Math.max(0.05, stock.shortInterest - 0.08); // Shorts cover
+                    } else if (change < -0.15) {
+                        stock.shortInterest = Math.min(0.6, stock.shortInterest + 0.04); // More shorts pile in
                     }
+                } else {
+                    stock.change = 0; // No change when halted
                 }
             });
             
             // Update options values and expire old ones
             updateOptionsPositions();
             
-            // Market can close occasionally
-            if (Math.random() < 0.05) { // 5% chance
+            // Market can close occasionally (reduced frequency)
+            if (Math.random() < 0.03) { // Reduced from 5%
                 gameState.marketOpen = false;
                 addNews("🔔 Market closed for special session");
-            } else if (!gameState.marketOpen && Math.random() < 0.3) { // 30% chance to reopen
+            } else if (!gameState.marketOpen && Math.random() < 0.4) { // Increased chance to reopen
                 gameState.marketOpen = true;
                 addNews("🔔 Market reopened for trading");
             }
